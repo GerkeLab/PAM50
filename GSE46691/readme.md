@@ -69,7 +69,7 @@ The `functions_gse46691.R` file contains several useful functions:
 
 3.  `tidy_gene_assignment()` takes the feature data and parses strings
     like `"NR_024005 // MGC13005 /// NR_024004 // MGC13005 /// AK093685
-    // MGC13005"` into a tidy data frame with two columns.
+    // MGC13005"` into a tidy data frame with two additional columns.
     
     ``` r
     # A tibble: 10 x 4
@@ -87,8 +87,9 @@ The `functions_gse46691.R` file contains several useful functions:
     10 2315114 ---                                                                      <chr [0]>         <chr [0]> 
     ```
     
-    When piped into `tidyr::unnest() %>% select(-gene_assignment)` this
-    gives a nice tidy data frame.
+    When piped into `tidyr::unnest() %>% select(ID,
+    gene_assignment_1:gene_assignment_2)` this gives a nice tidy data
+    frame.
     
     |      ID | gene\_assignment\_1 | gene\_assignment\_2 |
     | ------: | :------------------ | :------------------ |
