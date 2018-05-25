@@ -58,7 +58,8 @@ GSE46691 PAM50 Analysis
 
 ## Functions
 
-The `functions_gse46691.R` file contains several useful functions:
+The [`functions_gse46691.R`](functions_gse46691.R) file contains several
+useful functions:
 
 1.  `build_gse_46691()` is more-or-less specific to GSE46691 and builds
     an ExpressionSet-like object (a list rather than an ExpressionSet).
