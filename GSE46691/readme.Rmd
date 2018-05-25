@@ -67,6 +67,7 @@ plot_pam50_boxplot <- function(pam50_scores) {
         geom_boxplot(color = "grey50") + 
         geom_jitter(width = 0.15, shape = 3, size = 0.6) +
         facet_wrap(~ Call, ncol = 2, scales = "free") +
+        labs(x = "", y = "") +
         theme_minimal() +
         theme(
           panel.grid = element_blank(),
