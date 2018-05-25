@@ -3,7 +3,7 @@ GSE46691 PAM50 Analysis
 
 ## Overview
 
-`01-build_gse46691.R`
+[`01-build_gse46691.R`](01-build_gse46691.R)
 
 1.  Gathers the GSE46691 data files from
     <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE46691>,
@@ -17,7 +17,7 @@ GSE46691 PAM50 Analysis
     analysis
 6.  Writes out processed data
 
-`02-build_run_pam50_gse46691.R`
+[`02-build_run_pam50_gse46691.R`](02-build_run_pam50_gse46691.R)
 
 1.  Gathers PAM50 scripts from
     <https://genome.unc.edu/pubsup/breastGEO/>
@@ -26,7 +26,7 @@ GSE46691 PAM50 Analysis
 4.  Optionally runs the PAM50 analysis or links to the script to run the
     analysis
 
-`03-pam50-extra.R`
+[`03-pam50-extra.R`](03-pam50-extra.R)
 
 1.  Imports the PAM50 scores data and creates two new versions:
     1.  One version where the `Call` column for predicted `Her2` samples
@@ -35,7 +35,7 @@ GSE46691 PAM50 Analysis
         `Normal` with the next highest prediction
 2.  Saves all three versions as R `RDS` objects
 
-`99-clean-up.R`
+[`99-clean-up.R`](99-clean-up.R)
 
 1.  `gse46691_clean_everything()` deletes *all input* files, meaning a
     subsequent run will need to download everything again.
