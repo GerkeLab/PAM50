@@ -3,12 +3,13 @@ if (!requireNamespace("pacman", quietly = TRUE)) install.packages("pacman")
 pacman::p_load(Biobase)
 pacman::p_load(tidyverse)
 pacman::p_load(GEOquery)
-source("functions_gse46691.R")
-source("pam50_genes.R")
+
+# Source functions for these scripts
+source_files <- dir("functions", pattern = "\\.R$", full.names = TRUE)
+purrr::walk(source_files, source, local = globalenv())
 
 # ---- Gather Data ----
-data_dir <- "data"
-source("gather_gse46691.R")
+data_dir <- gather_gse46691("data")
 
 # ---- Load GPL and Series Matrix ----
 gse_46691 <- build_gse_46691(file_exprs = NULL, data_dir = data_dir)
@@ -25,6 +26,7 @@ gse_46691_genes <- pData(gse_46691$featureData) %>%
   select(-gene_assignment)
 
 # ---- Get probe to PAM50 gene map ----
+pam50_annotation <- data_pam50_annotation()
 gse_46691_pam50 <- gse_46691_genes %>% 
   filter(gene_assignment_1 %in% pam50_annotation$GeneName |
            gene_assignment_2 %in% pam50_annotation$GeneName) %>% 

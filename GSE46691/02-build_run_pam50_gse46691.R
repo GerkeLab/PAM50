@@ -11,6 +11,7 @@
 if (!requireNamespace("pacman", quietly = TRUE)) install.packages("pacman")
 pacman::p_install("ctc", force = FALSE)
 pacman::p_install("heatmap.plus", force = FALSE)
+source("functions/utils.R")
 
 # ---- PAM50 Parameters ----
 # PAM50 Params (see `PAM50/bioclassifier_example/bioclassifier_subtypeAssignment.R`)
@@ -21,23 +22,11 @@ collapseMethod        <- "iqr"
 pam50_data_file       <- "out/gse46691_prepped_pam50.tsv"
 data_id               <- "GSE46691"
 
-# ---- Download PAM50 Scripts ----
+# ---- Download and Extract PAM50 Scripts ----
 if (!file.exists("PAM50.zip")) 
   download.file("https://genome.unc.edu/pubsup/breastGEO/PAM50.zip", "PAM50.zip")
 
-pamdir <- "PAM50"
-if (dir.exists(pamdir)) {
-  overwrite_pam50 <- interactive() && 
-    yesno::yesno2(crayon::red(cli::symbol$cross), " Directory PAM50 already exists. Overwrite?")
-  if (overwrite_pam50) { 
-    unlink(pamdir, recursive = TRUE)
-  } else {
-    existing_pamdirs <- setdiff(dir(pattern = "PAM"), dir(pattern = "zip"))
-    pamdirs <- make.unique(c(existing_pamdirs, "PAM50"))
-    pamdir <- pamdirs[length(pamdirs)]
-  }
-}
-
+pamdir <- ask_if_overwrite("PAM50")
 unzip("PAM50.zip", exdir = pamdir)
 
 # ---- Copy prepped data to PAM dir ----
@@ -45,7 +34,7 @@ dir.create(file.path(pamdir, data_id))
 file.copy(pam50_data_file, file.path(pamdir, data_id))
 
 # ---- Modify PAM50 example script to use our data ----
-collapseMethod <- paste0("\"", collapseMethod, "\"")
+collapseMethod <- paste0('"', collapseMethod, '"')
 pam50_R_code <- c(
   "## Modified from bioclassifier_example/bioclassifier_subtypeAssignment.R",
   "library(ctc)",

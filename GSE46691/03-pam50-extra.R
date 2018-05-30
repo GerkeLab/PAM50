@@ -7,7 +7,8 @@ if (!file.exists(pam50_envir)) {
   stop("Please run PAM50 scripts first.")
 }
 
-library(tidyverse)
+if (!requireNamespace("pacman", quietly = TRUE)) install.packages("pacman")
+pacman::p_load(tidyverse)
 
 # ---- Read in PAM50 scores ----
 pam50_scores <- suppressWarnings(read_tsv(pam50_scores_file)) %>% 
