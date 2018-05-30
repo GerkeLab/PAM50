@@ -58,8 +58,9 @@ GSE46691 PAM50 Analysis
 
 ## Functions
 
-The [`functions_gse46691.R`](functions_gse46691.R) file contains several
-useful functions:
+The [`functions`](functions/) folder contains several useful functions:
+
+#### [`functions/build_gse_46691.R`](functions/build_gse_46691.R)
 
 1.  `build_gse_46691()` is more-or-less specific to GSE46691 and builds
     an ExpressionSet-like object (a list rather than an ExpressionSet).
@@ -68,7 +69,9 @@ useful functions:
     `AnnotatedDataFrame` (in preparation for an ExpressionSet) from a
     downloaded `GPLnnnn.soft` file or just the `GPLnnnn` identifier.
 
-3.  `tidy_gene_assignment()` takes the feature data and parses strings
+#### [`functions/utils.R`](functions/utils.R)
+
+1.  `tidy_gene_assignment()` takes the feature data and parses strings
     like `"NR_024005 // MGC13005 /// NR_024004 // MGC13005 /// AK093685
     // MGC13005"` into a tidy data frame with two additional columns.
     
@@ -109,11 +112,11 @@ useful functions:
     | 2315108 | XM\_001722700       | LOC100132970        |
     
 
-4.  `read_tsv_filtered()` is a generally-useful function that reads in a
+2.  `read_tsv_filtered()` is a generally-useful function that reads in a
     large TSV file in chunks and filters on-the-fly. The second argument
     is an expression like that which would be given to
     `dplyr::filter()`.
 
-5.  `median_center()` is used to center variable values within groups
+3.  `median_center()` is used to center variable values within groups
     using `dplyr::group_by()`. It assumes that the input is already
     grouped.
