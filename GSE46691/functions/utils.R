@@ -48,7 +48,7 @@ median_center <- function(x, value_var) {
     dplyr::select(-median)
 }
 
-#' Aask if we should overwrite a directory
+#' Ask if we should overwrite a directory
 #' 
 #' Assumes that directory to be created will be in the current working directory
 #' and cannot make recursive directories. 
@@ -73,4 +73,65 @@ ask_if_overwrite <- function(destdir, create_dir = FALSE, ...) {
   }
   if (create_dir) dir.create(destdir, ...)
   destdir
+}
+
+#' Download Files and Post Process
+#' 
+#' Download files from `urls` and alternatively post-process with the functions
+#' provided in post_process. The `urls` should be a named vector of URLs where 
+#' the name corresponds to the downloaded file name. The `post_processs`
+#' argument accepts a list of functions, where the list entries are named to
+#' match the downloaded file name. Each entry is itself a named list, where the
+#' name provides the name of the file expected to be created as a result of
+#' having applied the post processing. If the derivative name or the destination
+#' file exist, no downloading occurrs.
+#' 
+#' @example 
+#' download_files(
+#'   urls = c("GSE46691_family.soft.gz" = "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE46nnn/GSE46691/soft/GSE46691_family.soft.gz"),
+#'   post_process = list(
+#'     "GSE46691_family.soft.gz" = list(
+#'       "GSE46691_family.soft" = GEOquery::gunzip
+#'     )
+#'   ),
+#'   dest.dir = tempdir()
+#' )
+download_files <- function(
+  urls = NULL, 
+  post_process = NULL, 
+  dest.dir = getwd()
+) {
+  dir.create(dest.dir, showWarnings = FALSE)
+  
+  for (i in seq_along(urls)) {
+    url <- urls[i]
+    dest.file <- names(urls)[i]
+    dest.alt  <- if (dest.file %in% names(post_process)) names(post_process[[dest.file]])
+    skip_alt  <- !is.null(dest.alt) && file.exists(file.path(dest.dir, dest.alt))
+    
+    if (skip_alt) {
+      cli::cat_bullet("Skipping '", crayon::green(dest.file), "' because ",
+                      "'", crayon::green(dest.alt), "' is already available in ", 
+                      crayon::yellow(dest.dir), bullet = "pointer")
+    } else if (file.exists(file.path(dest.dir, dest.file))) {
+      cli::cat_bullet("Skipping '", crayon::green(dest.file), "' because it's already downloaded in ", 
+                      crayon::yellow(dest.dir), bullet = "pointer")
+    } else {
+      cli::cat_bullet("Downloading '", crayon::blue(dest.file), "' into ", 
+                      crayon::yellow(dest.dir), bullet = "pointer")
+      download.file(url, file.path(dest.dir, dest.file))
+      cli::cat_bullet(crayon::green(dest.file), " download complete", bullet = "tick")
+    }
+    
+    if (!is.null(dest.alt) && !dest.alt %in% dir(dest.dir)) {
+      cli::cat_bullet("Post processing '", crayon::green(dest.file), "' to produce '",
+                   crayon::yellow(dest.alt), "'")
+      process_fun <- post_process[[dest.file]][[dest.alt]]
+      owd <- setwd(dest.dir)
+      process_fun(dest.file)
+      setwd(owd)
+    }
+  }
+  
+  dest.dir
 }
