@@ -1,6 +1,7 @@
 # ---- Preamble ----
-if (!exists("data_dir")) data_dir <- "data"
-pamdir_results <- file.path("PAM50", data_dir)
+if (!exists("data_id")) data_id <- "GSE46691"
+if (!exists("pamdir")) pamdir <- "PAM50"
+pamdir_results <- file.path(pamdir, data_id)
 pam50_envir <- file.path(pamdir_results, "pam50_GSE46691_envir.RData")
 pam50_scores_file <- file.path(pamdir_results, "GSE46691_pam50scores.txt")
 if (!file.exists(pam50_envir)) {
