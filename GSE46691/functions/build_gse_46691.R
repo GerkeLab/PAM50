@@ -41,7 +41,8 @@ gpl2fd <- function(gpl) {
 #' to work with the data we want without the overhead of the ExpressionSet.
 #' 
 #' @param exprs_file <chr> Filename pointing to the normalized probe data.
-#'   For GSE46691 this is `"GSE46691_quantile_normalized.txt.gz"`.
+#'   For GSE46691 this is `"GSE46691_quantile_normalized.txt.gz"` or 
+#'   `"GSE46691_quantile_normalized.txt"`.
 #' @param as_ExpressionSet <lgl> Try to build and return and ExpressionSet?
 build_gse_46691 <- function(file_exprs = NULL, as_ExpressionSet = FALSE, data_dir = "data") {
   # Check params
@@ -62,8 +63,12 @@ build_gse_46691 <- function(file_exprs = NULL, as_ExpressionSet = FALSE, data_di
   # Files we need
   file_gpl <- "GPL5188.soft"
   file_series_matrix <- "GSE46691_series_matrix.txt.gz"
-  if (is.null(file_exprs)) file_exprs <- "GSE46691_quantile_normalized.txt.gz"
-  stopifnot(file.exists(file_exprs))
+  if (is.null(file_exprs)) {
+    file_exprs <- c("GSE46691_quantile_normalized.txt.gz",
+                    "GSE46691_quantile_normalized.txt")
+    file_exprs <- file_exprs[file.exists(file_exprs)][1]
+  }
+  stopifnot(is.na(file_exprs) || file.exists(file_exprs))
   stopifnot(file.exists(file_gpl))
   stopifnot(file.exists(file_series_matrix))
   
@@ -121,42 +126,29 @@ build_gse_46691 <- function(file_exprs = NULL, as_ExpressionSet = FALSE, data_di
 #' Download GSE46691 source data as needed to the provided `data_dir`.
 gather_gse46691 <- function(data_dir = "data") {
   cli::cat_rule("Gathering GSE46691 Data Files")
-  gse46991_urls <- c(
+  gse46691_urls <- c(
     "GSE46691_quantile_normalized.txt.gz" = "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE46691&format=file&file=GSE46691%5Fquantile%5Fnormalized%2Etxt%2Egz",
     "GSE46691_family.soft.gz" = "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE46nnn/GSE46691/soft/GSE46691_family.soft.gz",
     "GSE46691_series_matrix.txt.gz" = "ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE46nnn/GSE46691/matrix/GSE46691_series_matrix.txt.gz",
     "GPL5188.soft" = "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?targ=self&acc=GPL5188&form=text&view=full"
   )
+  
   dir.create(data_dir, showWarnings = FALSE)
-  cat(names(gse46991_urls), 
+  cat(names(gse46691_urls), 
       "GSE46691_quantile_normalized.txt", 
       "GSE46691.soft",
       "GSE46691_quantile_normalized.txt.gz-ID_REF.txt",
       file = file.path(data_dir, ".gitignore"), sep = "\n")
   
-  download_file <- function(url, dest.path, dest.name) {
-    if (file.exists(file.path(dest.path, dest.name))) {
-      cli::cat_bullet("Skipping '", crayon::green(dest.name), "' because it's already downloaded in ", 
-                      crayon::yellow(dest.path), bullet = "pointer")
-    } else {
-      cli::cat_bullet("Downloading '", crayon::blue(dest.name), "' into ", 
-                      crayon::yellow(dest.path), bullet = "pointer")
-      download.file(url, file.path(dest.path, dest.name))
-      cli::cat_bullet(crayon::green(dest.name), " download complete", bullet = "tick")
-    }
-  }
-  
-  for (i in seq_along(gse46991_urls)) {
-    download_file(gse46991_urls[i], data_dir, names(gse46991_urls)[i])
-  }
-  
-  if (!"GSE46691_quantile_normalized.txt" %in% dir(data_dir)) {
-    cli::cat_bullet("Unzipping ", crayon::green("GSE46691_series_matrix.txt.gz"),
-                    bullet = "pointer")
-    owd <- setwd(data_dir)
-    system("gunzip -c GSE46691_quantile_normalized.txt.gz > GSE46691_quantile_normalized.txt")
-    setwd(owd)
-  }
+  download_files(
+    urls = gse46691_urls,
+    post_process = list(
+      "GSE46691_quantile_normalized.txt.gz" = list(
+        "GSE46691_quantile_normalized.txt" = GEOquery::gunzip
+      )
+    ),
+    dest.dir = data_dir
+  )
   
   cli::cat_bullet("GSE46691 data files are available in ", 
                   crayon::yellow(file.path(getwd(), data_dir)), bullet = "tick")
