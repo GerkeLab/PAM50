@@ -125,9 +125,9 @@ gse_46691_exprs_prepped <- gse_46691$exprs %>%
   summarize(value = SUMMARIZE_FUNCTION(value)) %>% 
   tidyr::spread(hugo_name, value)
 
-saveRDS(gse_46691_exprs_prepped, file.path("out", "gse466691_hugo_exprs_prepped.rds"))
+saveRDS(gse_46691_exprs_prepped, file.path("out", "gse46691_hugo_exprs_prepped.rds"))
 
-write_tsv(gse_46691_exprs_prepped, file.path("out", "gse466691_hugo_exprs_prepped.tsv"))
+write_tsv(gse_46691_exprs_prepped, file.path("out", "gse46691_hugo_exprs_prepped.tsv"))
 
 
 # ---- Additional Patient Information ----
