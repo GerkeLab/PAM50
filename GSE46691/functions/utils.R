@@ -133,5 +133,60 @@ download_files <- function(
     }
   }
   
-  dest.dir
+  invisible(dest.dir)
+}
+
+#' Remove all common variables from a data frame
+#' 
+#' ...where common is defined as having the same value across all observations.
+remove_common <- function(x, ..., quiet = FALSE) {
+  keep <- tidyselect::vars_select(names(x), !!! quos(...))
+  remove_common_except(x, keep, quiet)
+}
+
+remove_common_except <- function(x, keep = NULL, quiet = FALSE) {
+  # remove columns with common values across all observations
+  # except for those named in `keep`
+  len_unique <- vapply(x, function(col) length(unique(col)), integer(1))
+  common <- colnames(x)[len_unique == 1]
+  common_can_remove <- setdiff(common, keep)
+  if (!quiet) {
+    value_text <- function(...) crayon::italic(encodeString(paste0(...), quote = "'"))
+    field <- function(...) crayon::green(paste0(...))
+    value <- function(...) crayon::blue(encodeString(paste0(...), quote = "'"))
+    
+    cli::cat_line("The following columns contain common information across all observations and have been removed.")
+    cli::cat_line(glue::glue("You can access this metadata in the {value('metadata')} attribute."))
+    kept <- intersect(keep, common)
+    if (length(kept)) cli::cat_line(glue::glue(
+      "{if (plural) 'Columns' else 'Column'} {kept_vars} ",
+      "{if (plural) 'do' else 'does'} not vary accross observations but ",
+      "{if (plural) 'have' else 'has'} been retained by user request",
+      plural = length(kept) > 1,
+      kept_vars = glue::glue_collapse(glue::glue("`{kept}`"), sep = ", ")
+    ))
+    for (col in common_can_remove) {
+      cli::cat_line(field(stringr::str_pad(col, max(nchar(common_can_remove)))), ': ',
+                    value_text(x[[col]][1]))
+    }
+  }
+  removed <- purrr::map(x[, common_can_remove], unique)
+  x <- x[, dplyr::setdiff(colnames(x), common_can_remove)]
+  attr(x, "metadata") <- removed
+  x
+}
+
+#' Clean up channel variables from GEO datasets
+clean_channel_vars <- function(x) {
+  idx <- grep(":ch[12]$", colnames(x))
+  ch_cols <- colnames(x)[idx]
+  stripped <- sub(":ch[12]$", "", ch_cols)
+  dups <- vapply(
+    stripped,
+    function(key) length(which(key == stripped)) > 1,
+    FUN.VALUE = logical(1))
+  # only replace the unqiuely named characteristics
+  ch_cols[!dups] <- stripped[!dups]
+  colnames(x)[idx] <- ch_cols
+  x
 }
