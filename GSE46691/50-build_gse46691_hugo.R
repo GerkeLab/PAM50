@@ -57,7 +57,7 @@ huex_annotation <- readr::read_csv(
 ) %>% 
   tidy_gene_assignment(gene_assignment) %>% 
   tidyr::unnest() %>% 
-  select(probeset_id, gene_assignment = gene_assignment_1)
+  select(-gene_assignment)
 
 # ---- Get Latest HUGO names ----
 download_files(
@@ -69,9 +69,20 @@ hgnc_dict <- readr::read_delim("data/hgnc_dict.tsv",
     "\t", escape_double = FALSE, trim_ws = TRUE) %>% 
   mutate(`Approved symbol` = str_replace(`Approved symbol`, "~withdrawn", ""))
 
+# First, match gene symbol provided by Affymetrix annotation to HGNC (Hugo)
 probe2hugo <- huex_annotation %>% 
-  distinct() %>% 
-  inner_join(hgnc_dict, by = c(gene_assignment = "RefSeq IDs"))
+  distinct(probeset_id, gene_assignment_2) %>% 
+  inner_join(hgnc_dict, by = c(gene_assignment_2 = "Approved symbol")) %>% 
+  rename(gene_assignment = gene_assignment_2)
+
+# Then try matching using RefSeq (public sequence ID from Affymetrix annotation)
+probe2refseq2hugo <- huex_annotation %>% 
+  filter(!probeset_id %in% probe2hugo$probeset_id) %>% 
+  distinct(probeset_id, gene_assignment_1) %>% 
+  inner_join(hgnc_dict, by = c(gene_assignment_1 = "RefSeq IDs")) %>% 
+  rename(`RefSeq IDs` = gene_assignment_1, gene_assignment = `Approved symbol`)
+
+probe2hugo <- bind_rows(probe2hugo, probe2refseq2hugo) %>% arrange(probeset_id, gene_assignment)
 
 # # This part is not needed but kept for future reference. Uncomment if the
 # # probset-hugo mapping contains un-approved symbols (check `Status` column)
@@ -125,9 +136,8 @@ gse_46691_exprs_prepped <- gse_46691$exprs %>%
   summarize(value = SUMMARIZE_FUNCTION(value)) %>% 
   tidyr::spread(hugo_name, value)
 
-saveRDS(gse_46691_exprs_prepped, file.path("out", "gse46691_hugo_exprs_prepped.rds"))
-
-write_tsv(gse_46691_exprs_prepped, file.path("out", "gse46691_hugo_exprs_prepped.tsv"))
+saveRDS(gse_46691_exprs_prepped, file.path("out", "gse46691_hugo_exprs-prepped.rds"))
+write_tsv(gse_46691_exprs_prepped, file.path("out", "gse46691_hugo_exprs-prepped.tsv"))
 
 
 # ---- Additional Patient Information ----
@@ -145,6 +155,9 @@ gse_46691_pdata <- pData(gse_46691$phenoData) %>%
 ## columns before the exprs data: `geo_accession`, `sample`, `gleason score` and
 ## `metastatic event`.
 #
-# gse_46691_pdata %>% 
-#   rename(sample = description) %>% 
-#   left_join(gse_46691_exprs_prepped, by = "sample")
+gse_46691_exprs_pdata <- gse_46691_pdata %>%
+  rename(sample = description) %>%
+  left_join(gse_46691_exprs_prepped, by = "sample")
+
+saveRDS(gse_46691_exprs_prepped, file.path("out", "gse46691_hugo_exprs-w-phenotype.rds"))
+write_tsv(gse_46691_exprs_prepped, file.path("out", "gse46691_hugo_exprs-w-phenotype.tsv"))
