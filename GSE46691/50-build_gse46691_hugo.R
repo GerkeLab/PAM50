@@ -105,7 +105,6 @@ gse_46691$exprs <- read_tsv_filtered(
 # ---- Save Checkpoint ----
 dir.create("out")
 saveRDS(gse_46691, file.path("out", "gse46691_hugo_checkpoint.rds"))
-saveRDS(gse_46691$exprs, file.path("out", "gse46691_hugo_exprs.rds"))
 saveRDS(probe2hugo, file.path("out", "probe2hugo.rds"))
 
 ## To restart from here without having to re-run the above:
