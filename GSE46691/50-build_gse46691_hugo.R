@@ -128,7 +128,7 @@ gse_46691_exprs_prepped <- gse_46691$exprs %>%
   tidyr::gather("sample", "value", -ID_REF) %>% 
   mutate(sample = str_replace(sample, "\\.CEL$", "")) %>% 
   left_join(
-    select(probe2hugo, probeset_id, hugo_name = `Approved symbol`), 
+    select(probe2hugo, probeset_id, hugo_name = gene_assignment), 
     ., 
     by = c(probeset_id = "ID_REF")
   ) %>% 
@@ -159,5 +159,5 @@ gse_46691_exprs_pdata <- gse_46691_pdata %>%
   rename(sample = description) %>%
   left_join(gse_46691_exprs_prepped, by = "sample")
 
-saveRDS(gse_46691_exprs_prepped, file.path("out", "gse46691_hugo_exprs-w-phenotype.rds"))
-write_tsv(gse_46691_exprs_prepped, file.path("out", "gse46691_hugo_exprs-w-phenotype.tsv"))
+saveRDS(gse_46691_exprs_pdata, file.path("out", "gse46691_hugo_exprs-w-phenotype.rds"))
+write_tsv(gse_46691_exprs_pdata, file.path("out", "gse46691_hugo_exprs-w-phenotype.tsv"))
